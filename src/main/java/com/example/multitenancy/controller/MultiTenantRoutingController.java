@@ -1,5 +1,6 @@
 package com.example.multitenancy.controller;
 
+import com.example.multitenancy.context.TenantContextHolder;
 import com.example.multitenancy.entity.CollegeTest;
 import com.example.multitenancy.repo.CollegeTestRepo;
 import com.example.multitenancy.service.TableService;
@@ -20,7 +21,6 @@ public class MultiTenantRoutingController {
 
     private static final Logger log = LoggerFactory.getLogger(MultiTenantRoutingController.class);
 
-    public static final InheritableThreadLocal<String> usernameContextHolder = new InheritableThreadLocal<>();
 
     @Autowired
     private CollegeTestRepo repo;
@@ -37,15 +37,16 @@ public class MultiTenantRoutingController {
 
     @PostMapping("/{username}")
     public String save(@PathVariable("username") String username, @RequestBody CollegeTest college) {
-        usernameContextHolder.set(username);
+        TenantContextHolder.setTenant(username);
         final CollegeTest save = repo.save(college);
+        TenantContextHolder.remove();
         return String.valueOf(save.id);
     }
 
     @PostMapping("create-table/{tableName}/{tenantId}")
     public String createDynamicTable(@PathVariable("tenantId") String username, @PathVariable("tableName") String tableName,
                                      @RequestBody Map<String, String> tableMeta) {
-        usernameContextHolder.set(username);
+        TenantContextHolder.setTenant(username);
 
         StringBuilder tableCreation = new StringBuilder();
         tableCreation.append("CREATE TABLE "+ tableName + "(");
@@ -61,6 +62,7 @@ public class MultiTenantRoutingController {
         log.info("Table SQL {}", tableCreation.toString());
 
         final String table = tableService.createTable(tableCreation.toString());
+        TenantContextHolder.remove();
         return table;
     }
 
@@ -68,7 +70,7 @@ public class MultiTenantRoutingController {
     public String insertIntoTable(@PathVariable("tenantId") String username,
                                   @PathVariable("tableName") String tableName,
                                      @RequestBody Map<String, String> tableMeta) {
-        usernameContextHolder.set(username);
+        TenantContextHolder.setTenant(username);
         final String columns = tableMeta.get("columns");
         final String values = tableMeta.get("values");
         StringBuilder insertQueryBuilder = new StringBuilder("INSERT INTO ");
@@ -79,7 +81,7 @@ public class MultiTenantRoutingController {
         log.info("Insert Query: {}", insertQueryBuilder.toString());
 
         tableService.insertIntoTable(insertQueryBuilder.toString());
-
+        TenantContextHolder.remove();
         return insertQueryBuilder.toString();
     }
 

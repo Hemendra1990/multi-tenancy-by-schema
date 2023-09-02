@@ -1,6 +1,8 @@
 package com.example.multitenancy.config;
 
+import com.example.multitenancy.context.TenantContextHolder;
 import com.example.multitenancy.controller.MultiTenantRoutingController;
+import com.example.multitenancy.controller.test.existing.entity.AccountController;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.util.StringUtils;
 
@@ -24,12 +26,11 @@ public class MultiTenantDataSource extends AbstractRoutingDataSource {
     protected Object determineCurrentLookupKey() {
         // Use a strategy to determine the current user or tenant identifier
         String currentUserOrTenant = determineCurrentUserOrTenant();
-
         return currentUserOrTenant;
     }
 
     private String determineCurrentUserOrTenant() {
-        final String username = MultiTenantRoutingController.usernameContextHolder.get();
+        final String username = TenantContextHolder.getTenant();
         // Implement logic to determine the current user or tenant identifier
         // This could be based on a session attribute, authentication, or other criteria
         // Return a String that identifies the current user or tenant

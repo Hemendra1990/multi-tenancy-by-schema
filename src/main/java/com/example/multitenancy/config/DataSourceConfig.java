@@ -12,6 +12,16 @@ import java.util.Map;
 @Configuration
 public class DataSourceConfig {
 
+
+    /**
+     *
+     * This is creating hardcoded datasources....
+     *
+     * But In production we will be implementing our logic
+     * so that any newly created schema will be stored in some table and from there we will be creating the datasources
+     *
+     * @return
+     */
     @Bean
     public DataSource dataSource() {
         MultiTenantDataSource multiTenantDataSource = new MultiTenantDataSource();
